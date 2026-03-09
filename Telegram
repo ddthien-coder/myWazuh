@@ -78,3 +78,6 @@ docker exec -u root single-node-wazuh.manager-1 yum install python3-requests -y
 docker exec -u root single-node-wazuh.manager-1 yum install python3-pip -y
 Restart
 docker exec -it single-node-wazuh.manager-1 /var/ossec/bin/wazuh-control restart
+Edit
+docker exec -u root single-node-wazuh.manager-1 yum install vim -y
+docker exec -it single-node-wazuh.manager-1 vim /var/ossec/integrations/custom-telegram.py
