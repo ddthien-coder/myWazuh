@@ -24,6 +24,7 @@ https://api.telegram.org/botTokenBot/getMe
 - Create new group add bot to new group
 https://api.telegram.org/botTokenBot/getUpdates
 -> getChatID
+-----------------------------------------------------------------------------------------------------
 Wazuh-server
 apt install python3-pip
 pip3 install requests
@@ -47,3 +48,33 @@ wazuh dashboard
   </integration>
 
 save config -> restart
+-------------------------------------------------------------------------------------------------
+Wazuh-docker
+root@wazuhsv:/home/wazuhsv/wazuh-docker# docker ps --format "{{.Names}}"
+single-node-wazuh.dashboard-1
+single-node-wazuh.manager-1
+single-node-wazuh.indexer-1
+root@wazuhsv:/home/wazuhsv/wazuh-docker# docker exec -it single-node-wazuh.manager-1 /bin/bash
+bash-5.2#mkdir -p /var/ossec/integrations
+chown root:wazuh /var/ossec/integrations
+chmod 750 /var/ossec/integrations
+exit
+root@wazuhsv:/var/ossec/integrations# docker cp custom-telegram.py single-node-wazuh.manager-1:/var/ossec/integrations/custom-telegram.py
+Successfully copied 4.1kB to single-node-wazuh.manager-1:/var/ossec/integrations/custom-telegram.py
+root@wazuhsv:/var/ossec/integrations# docker cp custom-telegram single-node-wazuh.manager-1:/var/ossec/integrations/custom-telegram
+Successfully copied 2.56kB to single-node-wazuh.manager-1:/var/ossec/integrations/custom-telegram
+root@wazuhsv:/var/ossec/integrations# docker exec -u root single-node-wazuh.manager-1 chown root:wazuh /var/ossec/integrations/custom-telegram.py
+root@wazuhsv:/var/ossec/integrations# docker exec -u root single-node-wazuh.manager-1 chmod 750 /var/ossec/integrations/custom-telegram.py
+root@wazuhsv:/var/ossec/integrations# docker exec -u root single-node-wazuh.manager-1 chmod 750 /var/ossec/integrations/custom-telegram
+root@wazuhsv:/var/ossec/integrations# docker exec -u root single-node-wazuh.manager-1 chown root:wazuh /var/ossec/integrations/custom-telegram
+  <!-- Telegram Alert-->
+  <integration>
+  	<name>custom-telegram</name>
+  	<hook_url>https://api.telegram.org/botTokenbot/sendMessage</hook_url>
+  	<level>10</level>
+  	<alert_format>json</alert_format>
+  </integration>
+docker exec -u root single-node-wazuh.manager-1 yum install python3-requests -y
+docker exec -u root single-node-wazuh.manager-1 yum install python3-pip -y
+Restart
+docker exec -it single-node-wazuh.manager-1 /var/ossec/bin/wazuh-control restart
