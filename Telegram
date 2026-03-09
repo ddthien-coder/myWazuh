@@ -24,7 +24,9 @@ https://api.telegram.org/botTokenBot/getMe
 - Create new group add bot to new group
 https://api.telegram.org/botTokenBot/getUpdates
 -> getChatID
-Wazuh-server 
+Wazuh-server
+apt install python3-pip
+pip3 install requests
 mkdir -p /var/ossec/integrations
 chown root:wazuh /var/ossec/integrations
 chmod 750 /var/ossec/integrations
