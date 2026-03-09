@@ -28,3 +28,20 @@ Wazuh-server
 mkdir -p /var/ossec/integrations
 chown root:wazuh /var/ossec/integrations
 chmod 750 /var/ossec/integrations
+nano /var/ossec/integrations/custom-telegram
+root@wazuhsv:/home/wazuhsv# cd /var/ossec/integrations/
+nano custom-telegram.py
+chown root:wazuh custom-telegram*
+root@wazuhsv:/var/ossec/integrations# chmod 750 custom-telegram*
+root@wazuhsv:/var/ossec/integrations# ll
+wazuh dashboard
+-> setting/configuration -> edit configuration -> find inte...
+  <!-- Telegram Alert-->
+  <integration>
+  	<name>custom-telegram</name>
+  	<hook_url>https://api.telegram.org/botTokenbot/sendMessage</hook_url>
+  	<level>10</level>
+  	<alert_format>json</alert_format>
+  </integration>
+
+save config -> restart
