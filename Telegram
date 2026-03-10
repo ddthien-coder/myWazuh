@@ -67,6 +67,7 @@ root@wazuhsv:/var/ossec/integrations# docker exec -u root single-node-wazuh.mana
 root@wazuhsv:/var/ossec/integrations# docker exec -u root single-node-wazuh.manager-1 chmod 750 /var/ossec/integrations/custom-telegram.py
 root@wazuhsv:/var/ossec/integrations# docker exec -u root single-node-wazuh.manager-1 chmod 750 /var/ossec/integrations/custom-telegram
 root@wazuhsv:/var/ossec/integrations# docker exec -u root single-node-wazuh.manager-1 chown root:wazuh /var/ossec/integrations/custom-telegram
+root@wazuhsv:/home/wazuhsv/wazuh-docker/single-node/config/wazuh_cluster# wazuh_manager.conf
   <!-- Telegram Alert-->
   <integration>
   	<name>custom-telegram</name>
@@ -74,6 +75,7 @@ root@wazuhsv:/var/ossec/integrations# docker exec -u root single-node-wazuh.mana
   	<level>10</level>
   	<alert_format>json</alert_format>
   </integration>
+docker-compose restart wazuh.manager
 docker exec -u root single-node-wazuh.manager-1 yum install python3-requests -y
 docker exec -u root single-node-wazuh.manager-1 yum install python3-pip -y
 Restart
