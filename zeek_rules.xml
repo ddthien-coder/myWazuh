@@ -17,23 +17,11 @@
     <srcport>5353</srcport>
     <description>Zeek: Normal mDNS traffic - $(dnsquery) from source ip $(srcip). Generally benign. Investigate only if the source is unexpected. </description>
   </rule>
-
-  <rule id="100903" level="7">
+  
+  <rule id="100903" level="0">
     <if_sid>100900</if_sid>
-    <field name="connection_state">REJ</field>
-    <description>Zeek: Connection from $(srcip) to $(dstip) $(dstport) rejected</description>
-  </rule>
-
-  <rule id="100906" level="8">
-    <if_sid>100900</if_sid>
-    <field name="ssl_validation_status">self signed certificate</field>
-    <description>Zeek: Client $(srcip) connected to a server with self-signed certificate $(dstip)</description>
-  </rule>
-
-  <rule id="100907" level="12">
-    <if_sid>100900</if_sid>
-    <field name="ssl_validation_status">certificate has expired</field>
-    <description>Zeek: Client $(srcip) connected to a server with expired certificate $(dstip)</description>
+    <field name="conn_state">^REJ$</field>
+    <description>Zeek: Single rejected connection (Ignored)</description>
   </rule>
   
   <rule id="100904" level="10" frequency="7" timeframe="30">
@@ -43,22 +31,36 @@
     <mitre><id>T1595</id></mitre>
   </rule>
 
-  <rule id="101020" level="9">
+  <rule id="100905" level="9">
     <if_sid>100900</if_sid>
     <field name="uri" type="pcre2">\.\.\/|union\s+select|alert\(|script|onerror=</field>
     <description>Zeek: Potential web exploit attempt</description>
     <mitre><id>T1190</id></mitre>
   </rule>
 
-  <rule id="101021" level="9">
+  <rule id="100906" level="9">
     <if_sid>100900</if_sid>
     <field name="user_agent" type="pcre2">sqlmap|nikto|nmap|havij|acunetix|masscan</field>
     <description>Zeek: Known vulnerability scanner detected</description>
   </rule>
 
-  <rule id="101040" level="9">
+  <rule id="100907" level="9">
     <if_sid>100900</if_sid>
     <field name="weird.name" type="pcre2">malformed|unexpected|exploit|attempt</field>
     <description>Zeek: Network anomaly/weird traffic detected</description>
+  </rule>
+  
+  <rule id="100908" level="7" frequency="15" timeframe="60">
+    <if_matched_sid>100903</if_matched_sid>
+    <same_source_ip />
+    <description>Zeek: Repeated connection rejections from $(id.orig_h) (Possible slow scan)</description>
+    <mitre><id>T1595</id></mitre>
+  </rule>
+
+  <rule id="100909" level="10" frequency="30" timeframe="30">
+    <if_matched_sid>100903</if_matched_sid>
+    <same_source_ip />
+    <description>Zeek: High frequency of rejections from $(id.orig_h) (Active Port Scanning/Discovery)</description>
+    <mitre><id>T1595.001</id></mitre>
   </rule>
 </group>
