@@ -17,50 +17,73 @@
     <srcport>5353</srcport>
     <description>Zeek: Normal mDNS traffic - $(dnsquery) from source ip $(srcip). Generally benign. Investigate only if the source is unexpected. </description>
   </rule>
-  
-  <rule id="100903" level="0">
+
+  <rule id="100903" level="7">
     <if_sid>100900</if_sid>
-    <field name="conn_state">^REJ$</field>
-    <description>Zeek: Single rejected connection (Ignored)</description>
+    <field name="connection_state" type="pcre2">^(REJ|RSTR)$</field>
+    <description>Zeek: Connection from $(srcip) to $(dstip) $(dstport) rejected</description>
   </rule>
-  
-  <rule id="100904" level="10" frequency="7" timeframe="30">
+
+  <rule id="100904" level="10" frequency="5" timeframe="20">
     <if_matched_sid>100903</if_matched_sid>
-    <same_source_ip />
-    <description>Zeek: Multiple rejected connections from $(id.orig_h) - possible scan</description>
-    <mitre><id>T1595</id></mitre>
+    <same_srcip />
+    <description>Zeek possible port scan from $(id.orig_h)</description>
   </rule>
 
-  <rule id="100905" level="9">
+<!-- Suppresses alerts for DNS queries domain. -->
+  <rule id="100905" level="0">
     <if_sid>100900</if_sid>
-    <field name="uri" type="pcre2">\.\.\/|union\s+select|alert\(|script|onerror=</field>
-    <description>Zeek: Potential web exploit attempt</description>
-    <mitre><id>T1190</id></mitre>
+    <field name="dnsquery" type="pcre2">.+</field>
+    <field name="id.resp_p">53</field>
+    <description>Zeek DNS query $(dnsquery) from $(id.orig_h) to $(id.resp_h)</description>
   </rule>
 
-  <rule id="100906" level="9">
+  <rule id="100906" level="8">
     <if_sid>100900</if_sid>
-    <field name="user_agent" type="pcre2">sqlmap|nikto|nmap|havij|acunetix|masscan</field>
-    <description>Zeek: Known vulnerability scanner detected</description>
+    <field name="uri" type="pcre2">(\.\./|union\s+select|script|onerror=|alert\()</field>
+    <description>Zeek possible web exploit attempt from $(id.orig_h) to $(id.resp_h): $(uri)</description>
   </rule>
 
-  <rule id="100907" level="9">
+  <rule id="100907" level="12">
     <if_sid>100900</if_sid>
-    <field name="weird.name" type="pcre2">malformed|unexpected|exploit|attempt</field>
-    <description>Zeek: Network anomaly/weird traffic detected</description>
+    <field name="user_agent" type="pcre2">(?i)(sqlmap|nikto|masscan|nmap|acunetix|havij)</field>
+    <description>Zeek scanner detected: $(user_agent) from $(id.orig_h)</description>
+  </rule>
+    <rule id="100913" level="0">
+    <if_sid>100900</if_sid>
+    <field name="id.resp_p">3389</field>
+    <description>Zeek RDP connection from $(id.orig_h) to $(id.resp_h)</description>
+  </rule>
+
+  <rule id="100914" level="10" frequency="5" timeframe="60">
+    <if_matched_sid>100913</if_matched_sid>
+    <same_srcip />
+    <description>Zeek RDP brute force suspected from $(id.orig_h)</description>
+  </rule>
+
+  <rule id="100915" level="0">
+    <if_sid>100900</if_sid>
+    <field name="id.resp_p">445</field>
+    <description>Zeek SMB connection from $(id.orig_h) to $(id.resp_h)</description>
+  </rule>
+
+  <rule id="100916" level="10" frequency="10" timeframe="60">
+    <if_matched_sid>100915</if_matched_sid>
+    <same_srcip />
+    <description>Zeek SMB lateral movement suspected from $(id.orig_h)</description>
+  </rule>
+
+  <rule id="100917" level="0">
+    <if_sid>100900</if_sid>
+    <field name="success">true</field>
+    <field name="username" type="pcre2">.+</field>
+    <description>Zeek NTLM success for $(username) from $(id.orig_h)</description>
+  </rule>
+
+  <rule id="100918" level="7">
+    <if_sid>100900</if_sid>
+    <field name="name" type="pcre2">^(truncated_tcp_payload|dnp3_header_lacks_magic)$</field>
+    <description>Zeek weird traffic detected: $(name) from $(id.orig_h)</description>
   </rule>
   
-  <rule id="100908" level="7" frequency="15" timeframe="60">
-    <if_matched_sid>100903</if_matched_sid>
-    <same_source_ip />
-    <description>Zeek: Repeated connection rejections from $(id.orig_h) (Possible slow scan)</description>
-    <mitre><id>T1595</id></mitre>
-  </rule>
-
-  <rule id="100909" level="10" frequency="30" timeframe="30">
-    <if_matched_sid>100903</if_matched_sid>
-    <same_source_ip />
-    <description>Zeek: High frequency of rejections from $(id.orig_h) (Active Port Scanning/Discovery)</description>
-    <mitre><id>T1595.001</id></mitre>
-  </rule>
 </group>
