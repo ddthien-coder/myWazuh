@@ -12,7 +12,7 @@
     <description>Zeek: DNS Query $(dnsquery) attempted from source ip $(srcip) source port $(srcport) resolved to IP(s) $(resolved_by)</description>
   </rule>
 
-  <rule id="100902" level="0">
+  <rule id="100902" level="5">
     <if_sid>100900</if_sid>
     <srcport>5353</srcport>
     <description>Zeek: Normal mDNS traffic - $(dnsquery) from source ip $(srcip). Generally benign. Investigate only if the source is unexpected. </description>
@@ -21,17 +21,20 @@
   <rule id="100903" level="7">
     <if_sid>100900</if_sid>
     <field name="connection_state" type="pcre2">^(REJ|RSTR)$</field>
-    <description>Zeek: Connection from $(srcip) to $(dstip) $(dstport) rejected</description>
+    <description>Zeek: Connection from $(srcip) to $(dstip) $(dstport)</description>
   </rule>
 
   <rule id="100904" level="10" frequency="5" timeframe="20">
     <if_matched_sid>100903</if_matched_sid>
     <same_srcip />
-    <description>Zeek possible port scan from $(id.orig_h)</description>
+    <same_dstip />
+    <description>
+      Zeek possible port scan: $(srcip) scanning $(dstip) ports (multiple attempts)
+    </description>
   </rule>
 
 <!-- Suppresses alerts for DNS queries domain. -->
-  <rule id="100905" level="0">
+  <rule id="100905" level="5">
     <if_sid>100900</if_sid>
     <field name="dnsquery" type="pcre2">.+</field>
     <field name="id.resp_p">53</field>
@@ -49,7 +52,22 @@
     <field name="user_agent" type="pcre2">(?i)(sqlmap|nikto|masscan|nmap|acunetix|havij)</field>
     <description>Zeek scanner detected: $(user_agent) from $(id.orig_h)</description>
   </rule>
-    <rule id="100913" level="0">
+  
+  <rule id="100909" level="7">
+    <if_sid>100900</if_sid>
+    <field name="filter" type="pcre2">(?i)\(\w+=\*\)</field>
+    <field name="id.resp_p">389</field>
+    <description>Zeek LDAP enumeration from $(id.orig_h) to $(id.resp_h)</description>
+  </rule>
+
+  <rule id="100910" level="6">
+    <if_sid>100900</if_sid>
+    <field name="id.resp_p">389</field>
+    <field name="result" type="pcre2">^(operations error|invalidCredentials|insufficientAccessRights|strongAuthRequired|SASL bind in progress)$</field>
+    <description>Zeek LDAP abnormal result from $(id.orig_h) to $(id.resp_h): $(result)</description>
+  </rule>
+  
+  <rule id="100913" level="5">
     <if_sid>100900</if_sid>
     <field name="id.resp_p">3389</field>
     <description>Zeek RDP connection from $(id.orig_h) to $(id.resp_h)</description>
@@ -58,10 +76,10 @@
   <rule id="100914" level="10" frequency="5" timeframe="60">
     <if_matched_sid>100913</if_matched_sid>
     <same_srcip />
-    <description>Zeek RDP brute force suspected from $(id.orig_h)</description>
+    <description>Zeek RDP brute force suspected from $(srcip)</description>
   </rule>
 
-  <rule id="100915" level="0">
+  <rule id="100915" level="5">
     <if_sid>100900</if_sid>
     <field name="id.resp_p">445</field>
     <description>Zeek SMB connection from $(id.orig_h) to $(id.resp_h)</description>
@@ -70,10 +88,10 @@
   <rule id="100916" level="10" frequency="10" timeframe="60">
     <if_matched_sid>100915</if_matched_sid>
     <same_srcip />
-    <description>Zeek SMB lateral movement suspected from $(id.orig_h)</description>
+    <description>Zeek SMB lateral movement suspected from $(srcip)</description>
   </rule>
 
-  <rule id="100917" level="0">
+  <rule id="100917" level="5">
     <if_sid>100900</if_sid>
     <field name="success">true</field>
     <field name="username" type="pcre2">.+</field>
